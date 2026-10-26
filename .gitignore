@@ -1,0 +1,10 @@
+# 敏感文件：含 API Key / token，绝不上传到公开仓库
+deploy-ai.sh
+deploy-ai.bat
+
+# Supabase CLI 临时文件
+supabase/.temp/
+
+# 系统文件
+.DS_Store
+Thumbs.db

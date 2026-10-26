@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f1d1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>云衣柜 · AI 智能搭配</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#f6f4f0; --panel:#fff; --ink:#1f1d1a; --sub:#8a857d; --line:#e8e3da;
+  --accent:#b98a5e; --accent-2:#4a6fa5; --good:#6b8f5e; --bad:#c0574f;
+  --chip:#f0ece5; --radius:14px; --shadow:0 2px 12px rgba(0,0,0,.05);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+.hidden{display:none!important}
+
+/* 顶部栏 */
+header{position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header .logo{font-size:17px;font-weight:700}
+header .logo span{color:var(--accent)}
+header .spacer{flex:1}
+header .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+header .logout{font-size:12px;color:var(--sub);background:none;border:none;padding:4px 6px}
+
+/* 底部导航（手机 Tab Bar） */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);display:flex;z-index:60;padding-bottom:var(--safe-bottom)}
+.bottom-nav button{flex:1;background:none;border:none;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--sub);font-size:11px}
+.bottom-nav button .ic{font-size:22px;line-height:1}
+.bottom-nav button.active{color:var(--accent);font-weight:600}
+
+main{max-width:560px;margin:0 auto;padding:14px 14px calc(72px + var(--safe-bottom))}
+.page{display:none}
+.page.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+
+/* 登录页 */
+.login-wrap{max-width:420px;margin:0 auto;padding:48px 24px;text-align:center}
+.login-wrap .big-logo{font-size:56px;margin-bottom:12px}
+.login-wrap h1{font-size:24px;margin-bottom:6px}
+.login-wrap .sub{color:var(--sub);font-size:14px;margin-bottom:32px}
+.field{margin-bottom:14px;text-align:left}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#4a463f}
+input[type=email],input[type=password],input[type=text],textarea,select{
+  width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink)
+}
+textarea{resize:vertical;min-height:80px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;padding:13px 20px;font-size:15px;font-weight:600;cursor:pointer;transition:.15s;background:var(--ink);color:#fff;width:100%}
+.btn:active{transform:scale(.98);opacity:.9}
+.btn.accent{background:var(--accent)}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn:disabled{opacity:.45}
+.btn.small{width:auto;padding:8px 14px;font-size:13px}
+.link{color:var(--accent-2);cursor:pointer;font-size:14px}
+
+/* 卡片 */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin-bottom:4px}
+.hint{font-size:13px;color:var(--sub);margin-bottom:12px}
+
+/* 上传 */
+.dropzone{border:2px dashed var(--line);border-radius:var(--radius);padding:28px 16px;text-align:center;cursor:pointer;background:#fcfbf9;transition:.15s}
+.dropzone:active{border-color:var(--accent);background:#faf5ee}
+.dropzone .icon{font-size:34px;margin-bottom:6px}
+.dropzone .t{font-weight:600}
+.dropzone .s{font-size:12px;color:var(--sub);margin-top:2px}
+.dropzone input{display:none}
+
+/* 衣柜网格 */
+.closet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cloth-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;position:relative}
+.cloth-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:#f0ede7}
+.cloth-card .info{padding:8px 10px}
+.cloth-card .name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.tag{font-size:10px;padding:2px 6px;border-radius:8px;background:var(--chip);color:#5c574e}
+.tag.cat{background:#eef2f7;color:var(--accent-2)}
+.tag.col{background:#f5eee6;color:var(--accent)}
+.tag.custom{background:#f0e9f3;color:#8a5ca0}
+
+/* 筛选 */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar select{flex:1;min-width:0;padding:8px 10px;font-size:13px;border-radius:10px;border:1px solid var(--line);background:#fff}
+
+/* 搭配结果 */
+.outfit{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0}
+.outfit-item{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.outfit-item img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.outfit-item .role{text-align:center;font-size:12px;color:var(--sub);padding:5px 0;background:#faf8f4}
+.outfit-item .role b{color:var(--accent)}
+.ai-result{background:#faf7f2;border-left:3px solid var(--accent);padding:12px;border-radius:8px;font-size:14px;white-space:pre-wrap}
+
+/* loading */
+.loading{display:flex;align-items:center;gap:10px;color:var(--sub);padding:14px 0;font-size:14px}
+.spinner{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.mask.show{display:flex}
+.modal{background:#fff;width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:20px;animation:up .25s}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:17px;margin-bottom:14px}
+.modal .close{float:right;background:none;border:none;font-size:24px;color:var(--sub);cursor:pointer;line-height:1}
+.tag-select{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.tag-select .opt{padding:6px 13px;border-radius:15px;border:1px solid var(--line);cursor:pointer;font-size:13px;background:#fff}
+.tag-select .opt.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tag-select .opt.color{width:26px;height:26px;padding:0;border-radius:50%;border:2px solid transparent}
+.tag-select .opt.color.on{border-color:var(--ink);box-shadow:0 0 0 2px #fff inset}
+
+/* 统计 */
+.stats{display:flex;gap:8px;margin-bottom:12px}
+.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stat .num{font-size:19px;font-weight:700}
+.stat .lb{font-size:11px;color:var(--sub)}
+
+/* toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ============ 登录页 ============ -->
+<div class="login-wrap hidden" id="loginPage">
+  <div class="big-logo">👗</div>
+  <h1>云衣柜</h1>
+  <div class="sub">你的衣服存云端，AI 帮你搭</div>
+  <div class="field">
+    <label>邮箱</label>
+    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="field">
+    <label>密码</label>
+    <input type="password" id="loginPassword" placeholder="至少 6 位" autocomplete="current-password">
+  </div>
+  <button class="btn accent" id="loginBtn">登录</button>
+  <div style="margin-top:14px;text-align:center">
+    <span class="link" id="toggleReg">没有账号？注册一个</span>
+  </div>
+  <div class="hint" style="margin-top:24px">首次使用会自动注册。数据存在云端，换手机登录同一账号即可同步。</div>
+</div>
+
+<!-- ============ 主应用 ============ -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">👗 云<span>衣柜</span></div>
+    <div class="spacer"></div>
+    <div class="avatar" id="avatar">衣</div>
+    <button class="logout" id="logoutBtn">退出</button>
+  </header>
+
+  <main>
+    <!-- 衣柜页 -->
+    <section class="page active" id="page-closet">
+      <div class="card">
+        <h2>📦 我的云衣柜</h2>
+        <div class="hint">拍照上传，AI 自动打标签，存到云端。</div>
+        <div class="dropzone" id="dropzone">
+          <div class="icon">📷</div>
+          <div class="t">拍照 / 从相册选衣服</div>
+          <div class="s">可多选，自动识别并上传云端</div>
+          <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+      </div>
+      <div class="stats" id="statsBar"></div>
+      <div class="filter-bar" id="filterBar"></div>
+      <div class="closet-grid" id="closetGrid"></div>
+    </section>
+
+    <!-- 搭配页 -->
+    <section class="page" id="page-outfit">
+      <div class="card">
+        <h2>✨ AI 智能搭配</h2>
+        <div class="hint">描述场景、天气、风格，AI 从云端衣柜挑一整套。</div>
+        <div class="field">
+          <label>你的需求</label>
+          <textarea id="outfitPrompt" placeholder="例：今天广州 28 度下雨，要见客户，想穿得干练一点…"></textarea>
+        </div>
+        <div class="field">
+          <label>天气</label>
+          <select id="weatherSelect">
+            <option value="">自动 / 不限</option>
+            <option>炎热 28℃+</option>
+            <option>温暖 18-27℃</option>
+            <option>凉爽 10-17℃</option>
+            <option>寒冷 5-9℃</option>
+            <option>严寒 0℃以下</option>
+            <option>下雨</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>风格</label>
+          <select id="styleSelect">
+            <option value="">不限</option>
+            <option>休闲</option><option>通勤</option><option>运动</option>
+            <option>甜美</option><option>复古</option><option>简约</option>
+            <option>街头</option><option>约会</option>
+          </select>
+        </div>
+        <button class="btn accent" id="genOutfitBtn">👔 生成整套搭配</button>
+      </div>
+      <div id="outfitResult"></div>
+    </section>
+
+    <!-- 匹配页 -->
+    <section class="page" id="page-match">
+      <div class="card">
+        <h2>🧥 新衣服搭配合</h2>
+        <div class="hint">拍一件新衣服，AI 识别后从云衣柜挑能搭的旧衣。</div>
+        <div class="dropzone" id="dropzone2">
+          <div class="icon">🆕</div>
+          <div class="t">拍照 / 上传新衣服</div>
+          <div class="s">AI 识别并推荐搭配</div>
+          <input type="file" id="fileInput2" accept="image/*">
+        </div>
+        <div id="matchPreview" style="margin-top:12px"></div>
+        <button class="btn accent hidden" id="matchBtn" style="margin-top:12px">🔍 识别并推荐搭配</button>
+      </div>
+      <div id="matchResult"></div>
+    </section>
+
+    <!-- 设置页 -->
+    <section class="page" id="page-settings">
+      <div class="card">
+        <h2>👤 我的账号</h2>
+        <div class="hint" id="accountInfo"></div>
+        <button class="btn ghost" id="exportBtn">导出衣柜备份</button>
+      </div>
+      <div class="card">
+        <h2>💡 说明</h2>
+        <div class="hint" style="white-space:pre-wrap">1. 衣服照片和标签都存在云端，换手机登录同一账号即同步。
+2. AI 打标签和搭配由云端处理，无需在手机上配置密钥。
+3. 建议定期导出备份。</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <button data-page="closet" class="active"><span class="ic">👗</span>衣柜</button>
+    <button data-page="outfit"><span class="ic">✨</span>搭配</button>
+    <button data-page="match"><span class="ic">🧥</span>新衣匹配</button>
+    <button data-page="settings"><span class="ic">⚙️</span>设置</button>
+  </nav>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <button class="close" id="modalClose">×</button>
+    <h3 id="modalTitle">编辑衣服</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // 注册 PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
